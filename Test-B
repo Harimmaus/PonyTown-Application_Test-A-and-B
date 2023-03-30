@@ -1,0 +1,34 @@
+// Connect to the server using Socket.IO
+const io = io();
+
+// Define a player template
+const player = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+
+// Handle incoming "player moved" messages from the server
+io.on('player moved', ({ id, x, y, z }) => {
+  const otherPlayer = scene.getObjectByName(id);
+  if (otherPlayer) {
+    otherPlayer.position.set(x, y, z);
+  } else {
+    const newPlayer = player.clone();
+    newPlayer.name = id;
+    newPlayer.position.set(x, y, z);
+    scene.add(newPlayer);
+  }
+});
+
+// Handle incoming "new player" messages from the server
+io.on('new player', ({ username }) => {
+  const newPlayer = player.clone();
+  newPlayer.name = username;
+  scene.add(newPlayer);
+});
+
+// Define the animation loop
+const animate = () => {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+};
+
+// Start the animation loop
+animate();
