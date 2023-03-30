@@ -1,0 +1,69 @@
+npm install phaser
+
+
+const Phaser = require('phaser');
+
+
+const game = new Phaser.Game({
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 200 }
+    }
+  },
+  scene: {
+    preload: preload,
+    create: create,
+    update: update
+  }
+});
+
+// Load game assets
+function preload() {
+  this.load.image('target', 'assets/target.png');
+}
+
+// Create game objects
+function create() {
+  // Add targets to the scene
+  this.targets = this.physics.add.group();
+  for (let i = 0; i < 5000; i++) {
+    const x = Phaser.Math.Between(0, 800);
+    const y = Phaser.Math.Between(0, 600);
+    const target = this.targets.create(x, y, 'target');
+    target.setInteractive();
+    target.on('pointerdown', () => {
+      target.destroy();
+      shots++;
+      hits++;
+    });
+  }
+
+  // Add timer text to the scene
+  this.timerText = this.add.text(10, 10, 'Time: 60s', { fontSize: '24px', fill: '#fff' });
+
+  // Initialize game variables
+  let shots = 0;
+  let hits = 0;
+  let startTime = Date.now();
+
+  // Define the update function
+  function update() {
+    // Update the timer text
+    const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+    const remainingTime = 60 - elapsedTime;
+    this.timerText.setText(`Time: ${remainingTime}s`);
+
+    // Check if the game is over
+    if (remainingTime <= 0) {
+      const hitPercentage = Math.floor((hits / shots) * 100);
+      const missPercentage = 100 - hitPercentage;
+      const statsText = `Shots: ${shots}\nHits: ${hits} (${hitPercentage}%)\nMisses: ${shots - hits} (${missPercentage}%)`;
+      this.add.text(400, 300, statsText, { fontSize: '48px', fill: '#fff', align: 'center' }).setOrigin(0.5);
+      this.input.mouse.disable();
+    }
+  }
+}
